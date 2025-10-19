@@ -103,7 +103,7 @@ const createQuiz = asyncHandler(async (req, res) => {
                 model: model,
                 messages: [
                     {
-                        "role": "system", "content": `You are concise quize maker, you have the knowledge about the the text written and also you can ask important questions well. Your job is to use your existing knowledge and this provided text to make a well quize of ${quantity} mcqs(Multiple Choice Question) with 4 questions and 1 answer in simple language in strictly english language. you should response strickly in this format [{"question": "<question>", "options": ["<option 1>", "<option 2>", "<option 3>", "<option 4>"], "answer": <index of currect answer from the options (e.g. 0/1/2/3)>}]. no need of your wordings like <here is the note or something like that>`
+                        "role": "system", "content": `You are concise quize maker, you have the knowledge about the the text written and also you can ask important questions well. Your job is to use your existing knowledge and this provided text to make a quize of exact total ${quantity} questions of mcq(Multiple Choice Question) type with 4 options and 1 answer in strictly english language (note that exactly ${quantity} number of questions only generated not more than that nor less then that). you have to response strickly in this format [{"question": "<question>", "options": ["<option 1>", "<option 2>", "<option 3>", "<option 4>"], "answer": <index of currect answer from the options (e.g. 0/1/2/3)>}]. no need of your wordings like <here is the note or something like that>`
                     },
                     {
                         "role": "user", "content": text
@@ -190,9 +190,31 @@ const getQuizByNoteId = asyncHandler(async (req, res) => {
 
 const deleteQuizByNoteId = asyncHandler(async (req, res) => {
     // to be implemented later
+    const { noteId } = req.params;
+    const userId = req.user._id;
+
+    if(!noteId){
+        throw new ApiError(400, "noteid required for delete quiz");
+    }
+
+    const note = await Note.find({_id: noteId, owner: userId});
+
+    if(!note || note.length === 0){
+        throw new ApiError(404, "you are not authorized to delete quiz for this note");
+    }
+
+    const quiz = await Quiz.findOneAndDelete({noteId})
+
+    if(!quiz){
+        throw new ApiError(404, "quiz not found for this noteid");
+    }
+    return res.status(200).json(
+        new ApiResponse(200, null, "quiz deleted successfully")
+    )
 });
 
 export {
     createQuiz,
-    getQuizByNoteId
+    getQuizByNoteId,
+    deleteQuizByNoteId
 }
