@@ -83,7 +83,7 @@ const createNote = asyncHandler( async (req, res) => {
                     body: JSON.stringify({
                         model: model,
                         messages: [
-                            { "role": "system", "content": "You are a concise note-maker, you have the knowledge about the topic explained in the transcript and also you can explain it well. Your job is to use your existing knowledge and this provided transcript to make a well detailed notes in simple language in strictly english language which includes almost whole the transcript, and if required example for any topic feel free to explain that complex topic with an example. no need of your wordings like <here is the note or something like that>" },
+                            { "role": "system", "content": "You are a concise note-maker, you have the knowledge about the topic explained in the transcript and also you can explain it well. Your job is to use your existing knowledge and this provided transcript to make a well detailed notes in simple language in strictly english language which covers almost whole the transcript (all the concepts should covered and nothing should remained), and if required example for any topic feel free to explain that complex topic with an example. no need of your wordings like <here is the note or something like that>" },
                             { "role": "user", "content": result.text }
                         ]
                     })
@@ -282,7 +282,7 @@ const createNoteByText = asyncHandler(async (req, res) => {
                 model: model,
                 messages: [
                     {
-                        "role": "system", "content": "You are concise note maker, you have the knowledge about the the text written and also you can explain it well. Your job is to use your existing knowledge and this provided text to make a well detailed notes in simple language in strictly english language which includes almost the whole text. no need of your wordings like <here is the note or something like that>"
+                        "role": "system", "content": "You are concise note maker, you have the knowledge about the the text written and also you can explain it well. Your job is to use your existing knowledge and this provided text to make a well detailed notes in simple language in strictly english language which covers almost the whole text (all the concepts should covered and nothing should remained). no need of your wordings like <here is the note or something like that>"
                     },
                     {
                         "role": "user", "content": text
@@ -476,7 +476,7 @@ const createNoteByFile = asyncHandler(async (req, res) => {
                 model: model,
                 messages: [
                     {
-                        "role": "system", "content": "You are concise note maker, you have the knowledge about the the text written and also you can explain it well. Your job is to use your existing knowledge and this provided text to make a well detailed notes in simple language in strictly english language which includes almost the whole text. no need of your wordings like <here is the note or something like that>"
+                        "role": "system", "content": "You are concise note maker, you have the knowledge about the the text written and also you can explain it well. Your job is to use your existing knowledge and this provided text to make a well detailed notes in simple language in strictly english language which covers almost the whole text (all the concepts should covered and nothing should remained). no need of your wordings like <here is the note or something like that>"
                     },
                     {
                         "role": "user", "content": text
@@ -1067,7 +1067,7 @@ const createNewVersionNote = asyncHandler( async (req, res) => {
             body: JSON.stringify({
                 model: model,
                 messages: [
-                    { "role": "system", "content": `You are a concise note-maker, you have the knowledge about the ${title} regarding ${description} and also you can explain it well. Your job is to use your existing knowledge and this provided transcript to make a well detailed notes in simple language in strictly english language which includes almost the whole transcript, and if required example for any topic feel free to explain that complex topic with an example. no need of your wordings like <here is the note or something like that>` },
+                    { "role": "system", "content": `You are a concise note-maker, you have the knowledge about the ${title} regarding ${description} and also you can explain it well. Your job is to use your existing knowledge and this provided transcript to make a well detailed notes in simple language in strictly english language which covers almost the whole transcript (all the concepts should covered and nothing should remained), and if required example for any topic feel free to explain that complex topic with an example. no need of your wordings like <here is the note or something like that>` },
                     { "role": "user", "content": transcript.text }
                 ]
             })
