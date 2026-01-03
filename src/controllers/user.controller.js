@@ -186,13 +186,14 @@ const registerUser = asyncHandler( async (req, res, next) => {
 
     delete userForReturn.password;
     delete userForReturn.refreshToken;
-        
+    delete userForReturn.otp;
+    delete userForReturn.otpExpiry;        
         
     const token = jwt.sign({email, otp}, process.env.JWT_SECRET, { expiresIn: '15m' })
 
     // TODO: need to change this link to frontend link
 
-    const verificationUrl = `http://${process.env.DOMAIN}:${process.env.PORT}/api/v1/user/verifyEmail/?token=${token}`
+    const verificationUrl = `${process.env.FRONTEND_URL}/user/verifyEmail/?token=${token}`
 
     await verificationMail(otp, email, verificationUrl);
 
@@ -288,7 +289,7 @@ const resendVerificationEmail = asyncHandler( async (req, res) => {
 
     // TODO: need to change this link to frontend link
 
-    const verificationUrl = `http://${process.env.DOMAIN}:${process.env.PORT}/api/v1/user/verifyEmail/?token=${token}`
+    const verificationUrl = `${process.env.FRONTEND_URL}/user/verifyEmail/?token=${token}`
 
     await verificationMail(otp, email, verificationUrl);
 
@@ -321,7 +322,7 @@ const initiateForgetPassword = asyncHandler(async (req, res) => {
 
     // TODO: need to change this link to frontend link
 
-    const forgetPasswordUrl = `http://${process.env.DOMAIN}:${process.env.PORT}/api/v1/user/forget-password/?token=${token}`;
+    const forgetPasswordUrl = `${process.env.FRONTEND_URL}/user/forget-password/?token=${token}`;
 
     await forgetPasswordMail(otp, email, forgetPasswordUrl);
 
@@ -414,7 +415,7 @@ const loginUser = asyncHandler( async (req, res) => {
 
     const { accessToken, refreshToken } = await generateAccessAndRefreshToken(user._id);
 
-    const loggedInUser = await User.findById(user._id).select("-password -refreshToken");
+    const loggedInUser = await User.findById(user._id).select("-password -refreshToken -otp -otpExpiry");
 
     const optionsAccessToken = {
         httpOnly: true,
@@ -484,6 +485,8 @@ const logOutUser = asyncHandler( async (req, res, next) => {
 const refreshAccessToken = asyncHandler ( async (req, res, next) => {
     
     const incomingRefreshToken = req.cookies?.refreshToken
+
+    console.log("incomingRefreshToken: ", incomingRefreshToken);
     
     if(!incomingRefreshToken){
         throw new ApiError(401, "Unauthorized access");
@@ -517,15 +520,19 @@ const refreshAccessToken = asyncHandler ( async (req, res, next) => {
         sameSite: 'none',
         maxAge: 10 * 24 * 60 * 60 * 1000
     }
+
+    const userForReturn = user.toObject();
+    delete userForReturn.password;
+    delete userForReturn.refreshToken;
     
         return res
         .status(200)
-        .cookie("accessToken", accessToken, optionsAccessToken)
+        // .cookie("accessToken", accessToken, optionsAccessToken)
         .cookie("refreshToken", refreshToken, optionsRefreshToken)
         .json(
             new ApiResponse(
                 200,
-                { accessToken, refreshToken },
+                { accessToken, user:userForReturn },
                 "access token refreshed successfully"
             )
         );
