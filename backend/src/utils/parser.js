@@ -1,14 +1,13 @@
-import { PDFParse } from 'pdf-parse';
+import pdf from 'pdf-parse/lib/pdf-parse.js';
 
 function isLikelyText(buf, sampleSize = 1024) {
   const len = Math.min(buf.length, sampleSize);
   let controlChars = 0;
   for (let i = 0; i < len; i++) {
     const code = buf[i];
-    // Allow tab(9), LF(10), CR(13), and printable range 32-126 and UTF-8 multibyte start bytes (>127)
     if (code === 9 || code === 10 || code === 13) continue;
     if (code >= 32 && code <= 126) continue;
-    if (code >= 128) continue; // treat as potential UTF-8 multibyte (heuristic)
+    if (code >= 128) continue;
     controlChars++;
     if (controlChars > len * 0.1) return false;
   }
@@ -22,10 +21,8 @@ export async function parseFile(buffer) {
     // Quick PDF check
     const header4 = buffer.slice(0, 4).toString('utf8', 0, 4);
     if (header4 === '%PDF') {
-      const parser = new PDFParse({ data: buffer });
-      const textResult = await parser.getText();
-      await parser.destroy();
-      return textResult && textResult.text ? textResult.text : '';
+      const data = await pdf(buffer);
+      return data.text || '';
     }
 
     // Only accept plain-text buffers otherwise
@@ -33,7 +30,6 @@ export async function parseFile(buffer) {
       return buffer.toString('utf8');
     }
 
-    // Not PDF or text — do not parse other formats
     return null;
   } catch (err) {
     console.error('[Parser] error parsing buffer:', err);
