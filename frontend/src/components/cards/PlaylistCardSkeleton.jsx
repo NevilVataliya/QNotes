@@ -3,7 +3,7 @@ import Skeleton from '../ui/Skeleton'
 function PlaylistCardSkeleton() {
   return (
     <div className="relative">
-      <div className="w-full bg-surface-900/90 backdrop-blur-sm rounded-2xl p-6 border border-surface-800/80 shadow-sm">
+      <div className="w-full bg-white/70 dark:bg-surface-900/90 backdrop-blur-sm rounded-2xl p-6 border border-surface-200/80 dark:border-surface-800/80 shadow-sm">
         <div className="flex justify-between items-start mb-4">
           <Skeleton className="h-6 w-16" rounded="rounded-full" />
           <Skeleton className="h-6 w-20" rounded="rounded-full" />
