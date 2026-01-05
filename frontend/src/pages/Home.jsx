@@ -214,7 +214,7 @@ function Home() {
                                 </div>
                                 <div className="flex flex-col sm:flex-row gap-3">
                                     <Link to="/signup">
-                                        <Button className="w-full sm:w-auto bg-white hover:bg-surface-100 px-7 py-3 rounded-xl font-semibold transition-colors duration-200 text-slate-950">
+                                        <Button textColor='text-slate-950' className="w-full sm:w-auto bg-white hover:bg-surface-100 px-7 py-3 rounded-xl font-semibold transition-colors duration-200">
                                             Sign up
                                         </Button>
                                     </Link>

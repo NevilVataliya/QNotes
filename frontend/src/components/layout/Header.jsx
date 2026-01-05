@@ -75,6 +75,7 @@ function Header() {
     { name: "About", slug: "/about", active: true },
     { name: "Discover", slug: "/discover", active: true },
     { name: "Contact", slug: "/contact", active: true },
+    { name: "GitHub", url: "https://github.com/NevilVataliya/QNotes", external: true, active: true },
   ]
 
   const postLoginNavItems = [
@@ -100,12 +101,18 @@ function Header() {
             {navItems.map((item) =>
               item.active ? (
                 <li key={item.name}>
-                  <button
-                    onClick={() => navigate(item.slug)}
-                    className='px-4 py-2 duration-200 hover:bg-surface-100 dark:hover:bg-surface-800 rounded-lg text-surface-700 dark:text-surface-200 hover:text-primary-900 dark:hover:text-surface-50 transition-colors'
-                  >
-                    {item.name}
-                  </button>
+                  {item.external ? (
+                    <button onClick={() => window.location.href ="https://github.com/NevilVataliya/QNotes"} className='px-4 py-2 duration-200 hover:bg-surface-100 dark:hover:bg-surface-800 rounded-lg text-surface-700 dark:text-surface-200 hover:text-primary-900 dark:hover:text-surface-50 transition-colors' target="_blank" rel="noreferrer">
+                      {item.name}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => navigate(item.slug)}
+                      className='px-4 py-2 duration-200 hover:bg-surface-100 dark:hover:bg-surface-800 rounded-lg text-surface-700 dark:text-surface-200 hover:text-primary-900 dark:hover:text-surface-50 transition-colors'
+                    >
+                      {item.name}
+                    </button>
+                  )}
                 </li>
               ) : null
             )}
@@ -260,15 +267,28 @@ function Header() {
               {navItems.map((item) =>
                 item.active ? (
                   <li key={item.name}>
-                    <button
-                      onClick={() => {
-                        navigate(item.slug)
-                        setIsMenuOpen(false)
-                      }}
-                      className='block w-full text-left px-4 py-2 text-surface-700 dark:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-800 hover:text-primary-900 dark:hover:text-surface-50 rounded-lg transition-colors'
-                    >
-                      {item.name}
-                    </button>
+                    {item.external ? (
+                      <a
+                        href={item.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        onClick={() => setIsMenuOpen(false)}
+                        className='block w-full text-left px-4 py-2 text-surface-700 dark:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-800 hover:text-primary-900 dark:hover:text-surface-50 rounded-lg transition-colors'
+                        title="View source code on GitHub"
+                      >
+                        {item.name}
+                      </a>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          navigate(item.slug)
+                          setIsMenuOpen(false)
+                        }}
+                        className='block w-full text-left px-4 py-2 text-surface-700 dark:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-800 hover:text-primary-900 dark:hover:text-surface-50 rounded-lg transition-colors'
+                      >
+                        {item.name}
+                      </button>
+                    )}
                   </li>
                 ) : null
               )}
