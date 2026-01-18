@@ -125,8 +125,8 @@ Base path: `/api/v1`
 - `POST /user/verify-email` — token or email+otp
 - `POST /user/resend-verification-email`
 - `PATCH /user/change-password`
-- `POST /user/initiate-forget-password`
-- `POST /user/forget-password`
+- `POST /user/initiate-forgot-password`
+- `POST /user/forgot-password`
 - `GET /user/get-user`
 
 ### Notes

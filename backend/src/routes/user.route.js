@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { changeCurrentPassword, loginUser, logOutUser, refreshAccessToken, registerUser, getCurrentUser, updateUserAvatar, updateAccountDetails, updateUserCoverImage, removeCoverImage, getWatchHistory, verifyEmail, resendVerificationEmail, initiateForgetPassword, forgetPassword, removeAvatarImage } from "../controllers/user.controller.js";
+import { changeCurrentPassword, loginUser, logOutUser, refreshAccessToken, registerUser, getCurrentUser, updateUserAvatar, updateAccountDetails, updateUserCoverImage, removeCoverImage, getWatchHistory, verifyEmail, resendVerificationEmail, initiateForgotPassword, forgotPassword, removeAvatarImage } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js"
 import { verifyJWT } from "../middlewares/auth.middleware.js"
 
@@ -21,8 +21,8 @@ router.route("/register").post(
 router.route("/refresh-access-token").post(refreshAccessToken)
 router.route("/verify-email").post(verifyEmail);
 router.route("/resend-verification-email").post(resendVerificationEmail);
-router.route("/initiate-forget-password").post(initiateForgetPassword);
-router.route("/forget-password").post(forgetPassword);
+router.route("/initiate-forgot-password").post(initiateForgotPassword);
+router.route("/forgot-password").post(forgotPassword);
 router.route("/login").post(loginUser)
 
 // secure routes

@@ -71,6 +71,14 @@ const router = createBrowserRouter([
             ),
         },
         {
+            path: "/forget-password",
+            element: (
+                <AuthLayout authentication={false}>
+                    <ForgotPassword />
+                </AuthLayout>
+            ),
+        },
+        {
             path: "/profile",
             element: (
                 <AuthLayout authentication>

@@ -6,7 +6,7 @@ import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import jwt from "jsonwebtoken"
 import { deleteCloudinaryImage } from "../utils/deleteCloudinaryFile.js";
 import { verificationMail } from "../Emails/register.email.js";
-import { forgetPasswordMail } from "../Emails/forgetPassword.email.js";
+import { forgotPasswordMail } from "../Emails/forgotPassword.email.js";
 import { AVATAR_PATH, COVER_IMAGE_PATH } from "../constants.js";
 
 const generateAccessAndRefreshToken = async (userid) => {
@@ -34,22 +34,20 @@ const generateAccessAndRefreshToken = async (userid) => {
     
 const registerUser = asyncHandler( async (req, res, next) => {
 
-    try {
-   
-            const { username, email, fullname, password } = req.body;
+    const { username, email, fullname, password } = req.body;
 
-            if(!username || username === ""){
-                    throw new ApiError(400, "username should not be empty")
-            }
-            else if(!email || email === ""){
-                    throw new ApiError(400, "email should not be empty")
-            }
-            else if(!password || password === ""){
-                    throw new ApiError(400, "password should not be empty")
-            }
-            else if(!fullname || fullname === ""){
-                    throw new ApiError(400, "full name should not be empty")
-            }
+    if(!username || username === ""){
+            throw new ApiError(400, "username should not be empty")
+    }
+    else if(!email || email === ""){
+            throw new ApiError(400, "email should not be empty")
+    }
+    else if(!password || password === ""){
+            throw new ApiError(400, "password should not be empty")
+    }
+    else if(!fullname || fullname === ""){
+            throw new ApiError(400, "full name should not be empty")
+    }
                     
     let user = await User.findOne({email});
     
@@ -131,11 +129,11 @@ const registerUser = asyncHandler( async (req, res, next) => {
     }
     else{            
 
-                let checkForUsername = await User.findOne({
-                username,
-                email: {
-                    $ne: email
-                } });
+            let checkForUsername = await User.findOne({
+            username,
+            email: {
+                $ne: email
+            } });
 
             if(checkForUsername){
                 throw new ApiError(400, "different user with this username, already exists");
@@ -193,18 +191,17 @@ const registerUser = asyncHandler( async (req, res, next) => {
 
     // TODO: need to change this link to frontend link
 
-    const verificationUrl = `${process.env.FRONTEND_URL}/user/verifyEmail/?token=${token}`
+    const verificationUrl = `${process.env.FRONTEND_URL}/email-verification/?token=${token}`
 
-    await verificationMail(otp, email, verificationUrl);
+    try {
+        await verificationMail(otp, email, verificationUrl);
+    } catch (error) {
+        throw new ApiError(500, "Failed to send verification email");
+    }
 
     return res.status(201).json(
         new ApiResponse(201, userForReturn, "user created successfully")
     );
-
-    } catch (error) {
-
-        next(error);
-    }
 })
 
 
@@ -289,9 +286,13 @@ const resendVerificationEmail = asyncHandler( async (req, res) => {
 
     // TODO: need to change this link to frontend link
 
-    const verificationUrl = `${process.env.FRONTEND_URL}/user/verifyEmail/?token=${token}`
+    const verificationUrl = `${process.env.FRONTEND_URL}/email-verification/?token=${token}`
 
-    await verificationMail(otp, email, verificationUrl);
+    try {
+        await verificationMail(otp, email, verificationUrl);
+    } catch (error) {
+        throw new ApiError(500, "Failed to send verification email");
+    }
 
     return res.status(200).json(
         new ApiResponse(200, "", "otp resend successfully")
@@ -300,7 +301,7 @@ const resendVerificationEmail = asyncHandler( async (req, res) => {
 })
 
 
-const initiateForgetPassword = asyncHandler(async (req, res) => {
+const initiateForgotPassword = asyncHandler(async (req, res) => {
     const { email } = req.body;
 
     if(!email){
@@ -322,17 +323,21 @@ const initiateForgetPassword = asyncHandler(async (req, res) => {
 
     // TODO: need to change this link to frontend link
 
-    const forgetPasswordUrl = `${process.env.FRONTEND_URL}/user/forget-password/?token=${token}`;
+    const forgotPasswordUrl = `${process.env.FRONTEND_URL}/forgot-password/?token=${token}`;
 
-    await forgetPasswordMail(otp, email, forgetPasswordUrl);
+    try {
+        await forgotPasswordMail(otp, email, forgotPasswordUrl);
+    } catch (error) {
+        throw new ApiError(500, "Failed to send forgot password email");
+    }
 
     return res.status(200).json(
-        new ApiResponse(200, "", "forget password mail sent successfully")
+        new ApiResponse(200, "", "forgot password mail sent successfully")
     )
 
 });
 
-const forgetPassword = asyncHandler(async (req, res) => {
+const forgotPassword = asyncHandler(async (req, res) => {
     const { token } = req.query;
 
     const { newPassword } = req.body;
@@ -340,7 +345,13 @@ const forgetPassword = asyncHandler(async (req, res) => {
     let email, otp;
 
     if(token){
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        let decoded;
+        try {
+            decoded = jwt.verify(token, process.env.JWT_SECRET);
+        } catch (error) {
+            throw new ApiError(400, "Invalid or expired token");
+        }
+
         email = decoded.email;
         otp = decoded.otp;
     }
@@ -929,4 +940,4 @@ const getWatchHistory = asyncHandler( async (req, res) => {
 
 
 
-export { registerUser, loginUser, logOutUser, refreshAccessToken, changeCurrentPassword, getCurrentUser, updateAccountDetails, updateUserAvatar, updateUserCoverImage, removeCoverImage, removeAvatarImage, getWatchHistory, verifyEmail, resendVerificationEmail, initiateForgetPassword, forgetPassword };
+export { registerUser, loginUser, logOutUser, refreshAccessToken, changeCurrentPassword, getCurrentUser, updateAccountDetails, updateUserAvatar, updateUserCoverImage, removeCoverImage, removeAvatarImage, getWatchHistory, verifyEmail, resendVerificationEmail, initiateForgotPassword, forgotPassword };

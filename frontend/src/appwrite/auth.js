@@ -183,8 +183,8 @@ export class AuthService {
         }
     }
 
-    async initiateForgetPassword(email) {
-        const response = await fetch(`${conf.backendUrl}/api/v1/user/initiate-forget-password`, {
+    async initiateForgotPassword(email) {
+        const response = await fetch(`${conf.backendUrl}/api/v1/user/initiate-forgot-password`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -195,17 +195,17 @@ export class AuthService {
         if (response.ok) {
             return data;
         } else {
-            throw new Error(data.message || 'Initiate forget password failed');
+            throw new Error(data.message || 'Initiate forgot password failed');
         }
     }
 
-    async forgetPassword({email, otp, newPassword, token}) {
-        let url = `${conf.backendUrl}/api/v1/user/forget-password`;
+    async forgotPassword({email, otp, newPassword, token}) {
+        let url = `${conf.backendUrl}/api/v1/user/forgot-password`;
         let body;
 
         if (token) {
             // Use token from query params
-            url += `?token=${token}`;
+            url += `?token=${encodeURIComponent(token)}`;
             body = { newPassword };
         } else {
             // Use email and OTP
@@ -223,7 +223,7 @@ export class AuthService {
         if (response.ok) {
             return data;
         } else {
-            throw new Error(data.message || 'Forget password failed');
+            throw new Error(data.message || 'Forgot password failed');
         }
     }
 

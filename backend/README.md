@@ -93,8 +93,8 @@ QNotes is an innovative note-taking application that leverages artificial intell
 
 ### Password Management
 - `PATCH /api/v1/user/change-password` - Change password (when logged in)
-- `POST /api/v1/user/initiate-forget-password` - Start password reset process
-- `POST /api/v1/user/forget-password` - Complete password reset with token
+- `POST /api/v1/user/initiate-forgot-password` - Start password reset process
+- `POST /api/v1/user/forgot-password` - Complete password reset with token
 
 ### User Profile
 - `GET /api/v1/user/get-user` - Get current user profile

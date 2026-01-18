@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useState, useEffect, useMemo } from 'react'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { Button, Input, Logo } from '../../components'
 import authService from '../../appwrite/auth'
 
@@ -14,15 +14,32 @@ function ForgotPassword() {
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
+  const location = useLocation()
+
+  const token = useMemo(() => {
+    const params = new URLSearchParams(location.search)
+    const raw = params.get('token')
+    return raw ? raw.trim() : ''
+  }, [location.search])
+
+  const isTokenFlow = Boolean(token)
 
   useEffect(() => {
+    if (isTokenFlow) {
+      setStep(2)
+    }
+  }, [isTokenFlow])
+
+  useEffect(() => {
+    if (isTokenFlow) return
+
     if (step === 2 && timeLeft > 0) {
       const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000)
       return () => clearTimeout(timer)
     } else if (step === 2) {
       setCanResend(true)
     }
-  }, [timeLeft, step])
+  }, [timeLeft, step, isTokenFlow])
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60)
@@ -37,7 +54,7 @@ function ForgotPassword() {
     setError('')
 
     try {
-      await authService.initiateForgetPassword(email)
+      await authService.initiateForgotPassword(email)
       setStep(2)
       setTimeLeft(900)
       setCanResend(false)
@@ -49,13 +66,21 @@ function ForgotPassword() {
   }
 
   const handlePasswordReset = async () => {
-    if (!(otp.length === 6 && newPassword === confirmPassword && newPassword.length >= 6)) return
+    if (isTokenFlow) {
+      if (!(newPassword === confirmPassword && newPassword.length >= 6)) return
+    } else {
+      if (!(otp.length === 6 && newPassword === confirmPassword && newPassword.length >= 6)) return
+    }
 
     setIsLoading(true)
     setError('')
 
     try {
-      await authService.forgetPassword({ email, otp, newPassword })
+      if (isTokenFlow) {
+        await authService.forgotPassword({ token, newPassword })
+      } else {
+        await authService.forgotPassword({ email, otp, newPassword })
+      }
       navigate('/login')
     } catch (error) {
       setError(error.message)
@@ -65,11 +90,15 @@ function ForgotPassword() {
   }
 
   const handleResend = async () => {
+    if (!email) {
+      setError('Please enter your email first.')
+      return
+    }
     setIsLoading(true)
     setError('')
 
     try {
-      await authService.initiateForgetPassword(email)
+      await authService.initiateForgotPassword(email)
       setTimeLeft(900)
       setCanResend(false)
     } catch (error) {
@@ -85,13 +114,14 @@ function ForgotPassword() {
         <div className="text-center mb-8">
           <Logo width="120px" className="mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-surface-50 mb-2">
-            {step === 1 ? 'Reset Your Password' : 'Enter Verification Code'}
+            {step === 1 ? 'Reset Your Password' : (isTokenFlow ? 'Set New Password' : 'Enter Verification Code')}
           </h2>
           <p className="text-surface-300">
             {step === 1
               ? 'Enter your email address and we\'ll send you a verification code.'
-              : 'We\'ve sent a 6-digit code to your email. Enter it below along with your new password.'
-            }
+              : (isTokenFlow
+                ? 'You opened a password reset link. Set a new password below.'
+                : 'We\'ve sent a 6-digit code to your email. Enter it below along with your new password.')}
           </p>
         </div>
 
@@ -123,20 +153,22 @@ function ForgotPassword() {
           </div>
         ) : (
           <div className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2 text-center">
-                Verification Code
-              </label>
-              <input
-                type="text"
-                value={otp}
-                onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                className="w-full text-center text-2xl font-mono bg-surface-900 border border-surface-700 rounded-lg px-4 py-3 text-surface-50 focus:border-primary-500 focus:outline-none transition-colors"
-                placeholder="000000"
-                maxLength={6}
-                disabled={isLoading}
-              />
-            </div>
+            {!isTokenFlow && (
+              <div>
+                <label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2 text-center">
+                  Verification Code
+                </label>
+                <input
+                  type="text"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  className="w-full text-center text-2xl font-mono bg-surface-900 border border-surface-700 rounded-lg px-4 py-3 text-surface-50 focus:border-primary-500 focus:outline-none transition-colors"
+                  placeholder="000000"
+                  maxLength={6}
+                  disabled={isLoading}
+                />
+              </div>
+            )}
 
             <Input
               label="New Password"
@@ -158,39 +190,49 @@ function ForgotPassword() {
               disabled={isLoading}
             />
 
-            <div className="text-center">
-              <p className="text-sm text-surface-600 dark:text-surface-400 mb-2">
-                Code expires in: <span className="text-primary-700 dark:text-primary-300 font-mono">{formatTime(timeLeft)}</span>
-              </p>
-              {canResend ? (
-                <button
-                  onClick={handleResend}
-                  disabled={isLoading}
-                  className="text-primary-700 dark:text-primary-300 hover:text-primary-800 dark:hover:text-primary-200 text-sm underline disabled:opacity-50 transition-colors"
-                >
-                  Resend verification code
-                </button>
-              ) : (
-                <p className="text-sm text-surface-500 dark:text-surface-400">
-                  Resend available in {formatTime(timeLeft)}
+            {!isTokenFlow && (
+              <div className="text-center">
+                <p className="text-sm text-surface-600 dark:text-surface-400 mb-2">
+                  Code expires in: <span className="text-primary-700 dark:text-primary-300 font-mono">{formatTime(timeLeft)}</span>
                 </p>
-              )}
-            </div>
+                {canResend ? (
+                  <button
+                    onClick={handleResend}
+                    disabled={isLoading}
+                    className="text-primary-700 dark:text-primary-300 hover:text-primary-800 dark:hover:text-primary-200 text-sm underline disabled:opacity-50 transition-colors"
+                  >
+                    Resend verification code
+                  </button>
+                ) : (
+                  <p className="text-sm text-surface-500 dark:text-surface-400">
+                    Resend available in {formatTime(timeLeft)}
+                  </p>
+                )}
+              </div>
+            )}
 
             <Button
               onClick={handlePasswordReset}
               className="w-full py-3 transition-colors"
               bgColor={
-                otp.length === 6 && newPassword === confirmPassword && newPassword.length >= 6 && !isLoading
+                (isTokenFlow
+                  ? (newPassword === confirmPassword && newPassword.length >= 6)
+                  : (otp.length === 6 && newPassword === confirmPassword && newPassword.length >= 6)) && !isLoading
                   ? 'bg-primary-600 hover:bg-primary-700'
                   : 'bg-surface-200 dark:bg-surface-800 cursor-not-allowed'
               }
               textColor={
-                otp.length === 6 && newPassword === confirmPassword && newPassword.length >= 6 && !isLoading
+                (isTokenFlow
+                  ? (newPassword === confirmPassword && newPassword.length >= 6)
+                  : (otp.length === 6 && newPassword === confirmPassword && newPassword.length >= 6)) && !isLoading
                   ? 'text-white'
                   : 'text-surface-600 dark:text-surface-400'
               }
-              disabled={!(otp.length === 6 && newPassword === confirmPassword && newPassword.length >= 6) || isLoading}
+              disabled={
+                (isTokenFlow
+                  ? !(newPassword === confirmPassword && newPassword.length >= 6)
+                  : !(otp.length === 6 && newPassword === confirmPassword && newPassword.length >= 6)) || isLoading
+              }
             >
               {isLoading ? 'Resetting...' : 'Reset Password'}
             </Button>
