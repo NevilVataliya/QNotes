@@ -7,6 +7,22 @@ const debugLog = (...args) => {
     }
 };
 
+const parseResponse = async (response) => {
+    const contentType = response.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) {
+        return response.json();
+    }
+    const text = await response.text();
+    return { message: text };
+};
+
+const getErrorMessage = (data, response) => {
+    if (data && typeof data === 'object' && data.message) {
+        return String(data.message).slice(0, 500);
+    }
+    return `Request failed with status ${response.status}`;
+};
+
 export class AuthService {
 
     async createAccount({email, password, fullname, username, avatar, coverImage}) {
@@ -175,12 +191,9 @@ export class AuthService {
             credentials: 'include', // Include httpOnly cookies
             body: JSON.stringify({oldPassword, newPassword, confirmPassword}),
         });
-        const data = await response.json();
-        if (response.ok) {
-            return data;
-        } else {
-            throw new Error(data.message || 'Change password failed');
-        }
+        const data = await parseResponse(response);
+        if (response.ok) return data;
+        throw new Error(getErrorMessage(data, response) || 'Change password failed');
     }
 
     async initiateForgotPassword(email) {
@@ -191,12 +204,9 @@ export class AuthService {
             },
             body: JSON.stringify({email}),
         });
-        const data = await response.json();
-        if (response.ok) {
-            return data;
-        } else {
-            throw new Error(data.message || 'Initiate forgot password failed');
-        }
+        const data = await parseResponse(response);
+        if (response.ok) return data;
+        throw new Error(getErrorMessage(data, response) || 'Initiate forgot password failed');
     }
 
     async forgotPassword({email, otp, newPassword, token}) {
@@ -219,12 +229,9 @@ export class AuthService {
             },
             body: JSON.stringify(body),
         });
-        const data = await response.json();
-        if (response.ok) {
-            return data;
-        } else {
-            throw new Error(data.message || 'Forgot password failed');
-        }
+        const data = await parseResponse(response);
+        if (response.ok) return data;
+        throw new Error(getErrorMessage(data, response) || 'Forgot password failed');
     }
 
     async updateAccount({fullname}) {

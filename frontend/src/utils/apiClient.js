@@ -32,13 +32,24 @@ class ApiClient {
 
         try {
             const response = await fetch(url, config);
-            const data = await response.json();
+            const contentType = response.headers.get('content-type') || '';
 
-            if (response.ok) {
-                return data;
+            let data;
+            if (contentType.includes('application/json')) {
+                data = await response.json();
             } else {
-                throw new Error(data.message || `Request failed with status ${response.status}`);
+                const text = await response.text();
+                data = { message: text };
             }
+
+            if (response.ok) return data;
+
+            const message =
+                (data && typeof data === 'object' && data.message && String(data.message).trim())
+                    ? String(data.message).slice(0, 500)
+                    : `Request failed with status ${response.status}`;
+
+            throw new Error(message);
         } catch (error) {
             console.error('API Client Error:', error);
             throw error;

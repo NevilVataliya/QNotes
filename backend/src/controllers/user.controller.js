@@ -320,9 +320,6 @@ const initiateForgotPassword = asyncHandler(async (req, res) => {
         throw new ApiError(500, "Failed to generate OTP or token");
     }
 
-
-    // TODO: need to change this link to frontend link
-
     const forgotPasswordUrl = `${process.env.FRONTEND_URL}/forgot-password/?token=${token}`;
 
     try {
